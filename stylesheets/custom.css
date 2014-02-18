@@ -1,0 +1,12 @@
+h1 {
+    text-align:center;
+}
+
+.logo {
+    width: 100%;
+}
+
+.logo img {
+    margin: auto;
+    display:block;
+}
