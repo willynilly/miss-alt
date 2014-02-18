@@ -11,6 +11,83 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script>
+      
+      $( window ).load(function() {
+            
+        function getSupportedProperty(proparray){
+            // adapted from http://www.javascriptkit.com/javatutors/setcss3properties.shtml
+            var root=document.documentElement //reference root element of document
+            for (var i=0; i<proparray.length; i++){ //loop through possible properties
+                if (proparray[i] in root.style){ //if property exists on element (value will be string, empty string if not set)
+                    return proparray[i] //return that string
+                }
+            }
+        }    
+                    
+        function getFilterSupportedProperty() {
+          return getSupportedProperty(['-ms-filter', '-moz-filter', '-o-filter', '-webkit-filter']);
+        }
+        
+        function getTransformSupportedProperty() {
+          return getSupportedProperty(['transform', '-webkit-transform', '-ms-transform', '-moz-transform', '-o-transform']);
+        }
+        
+        function getRandomInt(a, b) {
+          return Math.floor((Math.random()*(b-a))+a);
+        }
+            
+        var logo = d3.select(".logo img");
+        
+        var headTransition = logo.transition();
+        // headTransition.duration(4000).styleTween(getFilterSupportedProperty(), toBlur);
+        
+        function fromBlur(d, i, a) {
+          return d3.interpolateString("blur(30px)", "blur(20px)");
+        }
+
+        function toBlur(d, i, a) {
+          return d3.interpolateString("blur(0px)", "blur(30px)");
+        }
+
+        function firstLeftShake(d, i, a) {
+          return d3.interpolateString("rotate(0deg)", "rotate(10deg)");
+        }
+        
+        function rightShake(d, i, a) {
+          return d3.interpolateString("rotate(10deg)", "rotate(-10deg)");
+        }
+        
+        function secondLeftShake(d, i, a) {
+          return d3.interpolateString("rotate(-10deg)", "rotate(0deg)");
+        }
+        
+        function headShakeTransition(headTransition, duration) {
+          transformProperty = getTransformSupportedProperty();
+          return headTransition.transition().duration(.25*duration).styleTween(transformProperty, firstLeftShake)
+                     .transition().duration(.50*duration).styleTween(transformProperty, rightShake)
+                     .transition().duration(.25*duration).styleTween(transformProperty, secondLeftShake);
+        }
+
+        function headShake() {
+          var headTransition = d3.select(this);
+          (function repeat() {
+            headTransition = headShakeTransition(headTransition, getRandomInt(3000, 6000)).each('start', repeat);
+          })(); 
+        }
+
+        headTransition.transition().duration(4000).styleTween(getFilterSupportedProperty(), toBlur)
+                      .transition().each(headShake);
+        
+              
+      });
+      
+
+      
+    </script>
     <title>Miss-Alt by willynilly</title>
   </head>
 
