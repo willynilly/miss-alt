@@ -41,9 +41,9 @@ Open a new tab in Terminal and start mongodb:
 mongod
 ```
 
-Open a new tab in the Terminal and run the application from the application directory:
-
+Open a new tab in Terminal, clone the application repo and run the application:
 ```
+git clone https://github.com/willynilly/miss-alt.git
 cd miss-alt
 python application.py
 ```
