@@ -1,0 +1,22 @@
+<!doctype html>
+<title>MissAlt</title>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<div class="page">
+  <div class="site-header">
+    <img class="site-logo" src="{{ url_for('static', filename='missalt.png')   }}" />
+    <h1 class="site-title"><a href="{{ url_for('index') }}">MissAlt</a></h1>
+  </div>
+  <div class="metanav">
+  {% if not is_logged_in() %}
+    <a href="{{ url_for('login') }}">login</a> | 
+    <a href="{{ url_for('register') }}">register</a>
+  {% else %}
+    <a href="{{ url_for('report') }}">report image</a> | 
+    <a href="{{ url_for('logout') }}">logout</a>
+  {% endif %}
+  </div>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block body %}{% endblock %}
+</div>

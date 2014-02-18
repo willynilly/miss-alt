@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <h2>Report Insufficient Alternative Text for Image</h2>
+  <form action="{{ url_for('report') }}" method="post">
+    <p>
+      <label for="page_url">URL of the Web Page Containing the Image:</label>
+      <br/>
+      <input type="text" name="page_url" />
+    </p>
+    
+    <p>
+      <label for="img_url">URL of the Image File:</label>
+      <br/>
+      <input type="text" name="img_url"/>
+    </p>
+
+    <p>
+      <label for="img_current_alt_text">Current Alternative Text of the Image (optional):</label>
+      <br/>
+      <textarea name="img_current_alt_text"></textarea>
+    </p>
+    
+    <p>
+      <label for="img_ideal_alt_text">Ideal Alternative Text of the Image (optional):</label>
+      <br/>
+      <textarea name="img_ideal_alt_text"></textarea>
+    </p>
+    
+    <p>
+      <input type="submit" value="Report Image" />
+    </p>
+  </form>
+
+{% endblock %}

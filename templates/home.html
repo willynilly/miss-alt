@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% if not is_logged_in() %}
+
+  <h2>About</h2>
+  <p>MissAlt allows people with disabilities to report missing, insufficient, or inaccurate alternative text for images anywhere on the web.  Universities, companies, nonprofits, and government agencies can search MissAlt to discover and prioritize improving alt text for their content.</p>
+
+{% else %}
+
+  <h2>Dashboard</h2>
+  <p>API Key: <strong>{{ session.user_id }}</strong></p>
+  <h3>My Reported Images with Bad Alternative Text</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Page</th>
+        <th>Image</th>
+      <tr>
+    </thead>
+    <tbody>
+    {% for report in reports %}
+      <tr>
+        <td>{{ report.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
+        <td><a href="{{ report.page_url }}">Link</a></td>
+        <td><a href="{{ report.img_url }}">Link</a></td>  
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+{% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Register</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('register') }}" method="post">
+      <p>
+        <label for="email">Your Email Address:</label>
+        <br/>
+        <input type="text" name="email" value="{{ email }}" />
+      </p>
+      <p>
+        <label for="password">Your Password:</label>
+        <br/>
+        <input type="password" name="password" value="{{ password }}"  />
+      </p>
+      
+      
+      <p>
+      <label for="organization">Your Organizations (colleges, corporations, government agencies, etc) (separate with commas) (optional):</label>
+      <br/>
+      <textarea name="organization">{{ organization }}</textarea>
+      </p>
+      
+      <p>
+      <label for="disability">Your Disabilities (if any) (separate with commas) (optional):</label>
+      <br/>
+      <textarea name="disability">{{ disability }}</textarea>
+      </p>
+      
+      <p>
+        <input type="submit" value="Register" />
+      </p>
+  </form>
+{% endblock %}
