@@ -4,7 +4,6 @@ from flask.ext.pymongo import PyMongo, ObjectId
 import hashlib, uuid
 import datetime
 
-
 app = Flask(__name__)
 mongo = PyMongo(app)
 

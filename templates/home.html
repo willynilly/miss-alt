@@ -10,6 +10,8 @@
 
   <h2>Dashboard</h2>
   <p>API Key: <strong>{{ session.user_id }}</strong></p>
+  
+  {% if reports: %}
   <h3>My Reported Images with Bad Alternative Text</h3>
   <table>
     <thead>
@@ -29,6 +31,7 @@
     {% endfor %}
     </tbody>
   </table>
+  {% endif %}
 
 {% endif %}
 

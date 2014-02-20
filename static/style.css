@@ -9,12 +9,14 @@ th              { text-align: left; }
 td              { text-align: left; }
 
 
-.site-header     { 
-                  overflow:auto; 
-                  min-height: 10em;
-                  display: table-row;
-                  width: 100%;}
-.site-title      { width: 1em; display:table-cell; vertical-align: middle;}
+.site-header { 
+    overflow:auto; 
+    min-height: 10em;
+    display: table-row;
+    width: 100%;
+}
+
+.site-title      { display:table-cell; vertical-align: middle;}
 .site-logo      { width: 3em; display:table-cell; vertical-align: middle; margin-right: 20px }
 .page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
                   padding: 0.8em; background: white; }
