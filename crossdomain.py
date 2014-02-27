@@ -11,7 +11,7 @@ def crossdomain(origin=None):
                 resp = Response(status=200,
                                 mimetype="application/json")
                 resp.headers['Access-Control-Allow-Origin'] = '*'
-                resp.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS' #'HEAD,GET,POST,PUT,DELETE,OPTIONS'
+                resp.headers['Access-Control-Allow-Methods'] = 'HEAD,GET,POST,PUT,DELETE,OPTIONS' #'HEAD,GET,POST,PUT,DELETE,OPTIONS'
                 resp.headers['Access-Control-Max-Age'] = '1000'
                 # note that '*' is not valid for Access-Control-Allow-Headers
                 resp.headers['Access-Control-Allow-Headers'] = 'origin, x-csrftoken, content-type, accept'

@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
 
-  <h2>Report Image with Insufficient Alternative Text</h2>
+  <h2>Report Image Issue</h2>
   <form action="{{ url_for('report') }}" method="post">
     <p>
       <label for="page_url">URL of the Web Page Containing the Image:</label>
@@ -16,15 +16,31 @@
     </p>
 
     <p>
-      <label for="img_current_alt_text">Current Alternative Text of the Image (optional):</label>
+      <label for="type">Type of Issue:</label>
       <br/>
-      <textarea name="img_current_alt_text">{{issue['img_current_alt_text']}}</textarea>
+      <select name="type">
+        <option value="missing_alt_text">Missing Alt Text</option>
+        <option value="unhelpful_alt_text">Unhelpful Alt Text</option>
+        <option value="other">Other</option>
+      </select>
+    </p>
+    
+    <p>
+      <label for="description">Description of Issue:</label>
+      <br/>
+      <textarea rows="10" cols="40"  name="description">{{issue['description']}}</textarea>
+    </p>
+
+    <p>
+      <label for="img_current_alt_text">Current Alternative Text of the Image:</label>
+      <br/>
+      <textarea rows="10" cols="40" name="img_current_alt_text">{{issue['img_current_alt_text']}}</textarea>
     </p>
     
     <p>
       <label for="img_suggested_alt_text">Suggested Alternative Text of the Image (optional):</label>
       <br/>
-      <textarea name="img_suggested_alt_text">{{issue['img_suggested_alt_text']}}</textarea>
+      <textarea rows="10" cols="40"  name="img_suggested_alt_text">{{issue['img_suggested_alt_text']}}</textarea>
     </p>
     
     <p>

@@ -1,15 +1,25 @@
-from flask import Flask, flash, session, redirect, url_for, escape, request, render_template, Response
+from flask import Flask, flash, session, redirect, url_for, escape, request, render_template, make_response, Response
 from flask.ext.pymongo import PyMongo, ObjectId
 from collections import Counter
 from smartjson import smart_jsonify, request_wants_json
 from utility import get_full_filename_from_url
 from crossdomain import crossdomain
+import re
 
 import hashlib, uuid
 import datetime
 
 app = Flask(__name__)
 mongo = PyMongo(app)
+
+class Issue:
+    status_open = 'Open'
+    status_resolved = 'Resolved'
+    status_closed = 'Closed'
+    type_missing_alt_text = 'Missing Alt Text'
+    type_unhelpful_alt_text = 'Unhelpful Alt Text'
+    type_other = 'Other'
+    var_names =  ['page_url', 'img_url', 'type', 'creator', 'description', 'status', 'img_current_alt_text', 'img_suggested_alt_text']
 
 def get_hashed_password(password, salt="somesalt"):
     return hashlib.sha512(password + salt).hexdigest()
@@ -27,16 +37,15 @@ def get_object_by_form_or_json(var_names=[]):
     obj = {k:'' for k in var_names}
     json = request.get_json(silent=True)
     if json is None:
-        issue = {k:request.form[k].strip() for k in var_names}
+        issue = dict(obj.items() + {k:request.form[k].strip() for k in request.form.keys() if k in var_names}.items())
     else:
         issue = dict(obj.items() + json.items())
     return issue
 
 @app.route('/')
 def index():
-    if is_logged_in:
+    if is_logged_in():
         issues = get_issues_by_user(get_current_user())
-        issues = list(issues)
         for i in issues:
             i['complaint_count'] = sum(i['reporters'].values())
             i['img_filename'] = get_full_filename_from_url(i['img_url'])
@@ -97,18 +106,24 @@ def user_profile(userid):
     user = mongo.db.users.find_one_or_404({'_id': userid})
     return render_template('user.html', user=user)
 
+
+# make sure to hide this for production site
+@app.route('/clear', methods=['GET'])
+def clear_all():
+    mongo.db.issues.drop()
+    return redirect(url_for('index'))
+
 @app.route('/report', methods=['GET', 'POST', 'OPTIONS'])
 @app.route('/issue', methods=['GET', 'POST', 'OPTIONS'])
 @crossdomain(origin='*')
 def report():
     error = None
-    issue_var_names =  ['page_url', 'img_url', 'img_current_alt_text', 'img_suggested_alt_text']
-    issue = {k:'' for k in issue_var_names}
+    issue = {k:'' for k in Issue.var_names}
     respond_with_json = request_wants_json(request)
 
     if request.method == 'POST':
-        issue = get_object_by_form_or_json(issue_var_names)
-                    
+        issue = get_object_by_form_or_json(Issue.var_names)
+                            
         if not issue['page_url']:
             error = "Please enter the URL for the web page containing the image."
         else:
@@ -119,10 +134,12 @@ def report():
             
             if is_logged_in():        
                 reporter_user_id = session['user_id']
+            elif issue['creator']:
+                reporter_user_id = issue['creator']
             else:
                 reporter_user_id = None
                 
-            issue = add_issue(reporter_user_id, issue)
+            issue = add_or_update_issue(reporter_user_id, issue)
             
             if respond_with_json:
                 return smart_jsonify(issue)
@@ -139,7 +156,9 @@ def report():
     else:
         return make_response(render_template('report.html', error=error, issue=issue))
 
-def add_issue(reporter_user_id, issue):
+def add_or_update_issue(reporter_user_id, issue):
+    issue = determine_issue_type_and_status(issue)
+    
     if reporter_user_id is None:
         reporter_user_id = 'Unknown'
     n_issue = mongo.db.issues.find_one({'img_url': issue['img_url'], 'page_url': issue['page_url']})    
@@ -147,9 +166,14 @@ def add_issue(reporter_user_id, issue):
         n_issue = {"img_url": issue['img_url'], \
                     "page_url": issue['page_url'], \
                     "created_on": datetime.datetime.utcnow(), \
+                    "img_original_alt_text": issue['img_current_alt_text'], \
+                    "creator": reporter_user_id, \
                     "reporters": []}
     n_issue['img_current_alt_text'] = issue['img_current_alt_text']
     n_issue['img_suggested_alt_text'] = issue['img_suggested_alt_text']
+    n_issue['description'] = issue['description']
+    n_issue['type'] = issue['type']
+    n_issue['status'] = issue['status']
     
     # add reporter_id frequencies
     n_issue['reporters'] = {k:v for (k, v) in (Counter(n_issue['reporters']) + Counter({reporter_user_id:1})).iteritems()}
@@ -163,13 +187,47 @@ def add_issue(reporter_user_id, issue):
     return n_issue
 
 
+def determine_issue_type_and_status(issue):
+    issue['type'] = issue['type'].strip()
+    issue['description'] = issue['description'].strip()
+
+    cur_alt_text = issue['img_current_alt_text'].strip()
+    unhelpful_alt_text = ['image', 'picture', 'photo', 'photograph']
+    
+    if cur_alt_text == '':
+        issue['type'] = Issue.type_missing_alt_text
+        issue['status'] = Issue.status_open
+    elif issue['type'] == Issue.type_missing_alt_text:
+        issue['status'] = Issue.status_resolved
+        
+    if (cur_alt_text.lower() in unhelpful_alt_text) or re.match(r"^\S+\.\S+$", cur_alt_text):
+        # alt text is unhelpful because it matches a blacklist term or it is a filename
+        issue['description'] = "Unhelpful Alt Text"
+        issue['status'] = Issue.status_open
+    elif issue['type'] == Issue.type_unhelpful_alt_text:
+        issue['status'] = Issue.status_resolved
+    
+    if issue['type'] == Issue.type_other and issue['description'] == '':
+        # close the issue if there was not description of it
+        issue['status'] = Issue.status_closed
+        
+    return issue
+        
+
+
 def get_issues_by_user(user):
     if user is None:
         return None
     else:
         # https://stackoverflow.com/questions/10242149/sorting-with-mongodb-and-python
-        #return mongo.db.issues.find().sort([("created_on", -1)])    
-        return mongo.db.issues.find({'reporters': {'$exists': [str(user['_id'])]}}).sort([("created_on", -1)])    
+        #return mongo.db.issues.find().sort([("created_on", -1)])
+        issues = mongo.db.issues.find({('reporters.' + str(user['_id'])) : {'$exists': True}}).sort([("created_on", -1)])
+        issues = list(issues) # make sure it is reiterable
+        for i in issues:
+            print i['reporters']
+        print str(user['_id'])    
+        
+        return issues
         
 # @app.route('/img/<imgid>')
 # def img_profile(imgid):

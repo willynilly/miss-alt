@@ -12,12 +12,16 @@
   <p>API Key: <strong>{{ session.user_id }}</strong></p>
   
   {% if issues: %}
-  <h3>My Reported Images with Bad Alternative Text</h3>
+  <h3>My Image Issues</h3>
   <table class="my-issues">
     <thead>
       <tr>
+        <th>Status</th>
         <th class="img-filename">Image</th>
-        <th>Last Complaint Date</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Created Date</th>
+        <th>Updated Date</th>
         <th>Total Complaints</th>
         <th>Page</th>
       <tr>
@@ -25,7 +29,11 @@
     <tbody>
     {% for issue in issues %}
       <tr>
+        <td><a href="{{ issue.status }}">{{ issue.status }}</a></td>
         <td><a href="{{ issue.img_url }}">{{ issue.img_filename }}</a></td>
+        <td>{{ issue.type }}</td>
+        <td>{{ issue.description }}</td>
+        <td>{{ issue.created_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
         <td>{{ issue.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
         <td>{{ issue.complaint_count }}</td>
         <td><a href="{{ issue.page_url }}">Link</a></td>
