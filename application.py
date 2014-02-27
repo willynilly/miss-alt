@@ -1,5 +1,9 @@
-from flask import Flask, flash, session, redirect, url_for, escape, request, render_template
+from flask import Flask, flash, session, redirect, url_for, escape, request, render_template, Response
 from flask.ext.pymongo import PyMongo, ObjectId
+from collections import Counter
+from smartjson import smart_jsonify, request_wants_json
+from utility import get_full_filename_from_url
+from crossdomain import crossdomain
 
 import hashlib, uuid
 import datetime
@@ -7,13 +11,38 @@ import datetime
 app = Flask(__name__)
 mongo = PyMongo(app)
 
+def get_hashed_password(password, salt="somesalt"):
+    return hashlib.sha512(password + salt).hexdigest()
+
+def is_logged_in():
+    return session is not None and 'user_id' in session and session['user_id'] is not None
+
+def get_current_user():
+    if is_logged_in():
+        return mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+    else:
+        return None
+
+def get_object_by_form_or_json(var_names=[]):
+    obj = {k:'' for k in var_names}
+    json = request.get_json(silent=True)
+    if json is None:
+        issue = {k:request.form[k].strip() for k in var_names}
+    else:
+        issue = dict(obj.items() + json.items())
+    return issue
+
 @app.route('/')
 def index():
     if is_logged_in:
-        reports = get_reports_by_user(get_current_user())
+        issues = get_issues_by_user(get_current_user())
+        issues = list(issues)
+        for i in issues:
+            i['complaint_count'] = sum(i['reporters'].values())
+            i['img_filename'] = get_full_filename_from_url(i['img_url'])
     else:
-        reports = None
-    return render_template('home.html', reports=reports)
+        issues = None
+    return render_template('home.html', issues=issues)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -68,57 +97,79 @@ def user_profile(userid):
     user = mongo.db.users.find_one_or_404({'_id': userid})
     return render_template('user.html', user=user)
 
-@app.route('/report', methods=['GET', 'POST'])
+@app.route('/report', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/issue', methods=['GET', 'POST', 'OPTIONS'])
+@crossdomain(origin='*')
 def report():
     error = None
-    img_url = page_url = img_current_alt_text = img_ideal_alt_text = ""
+    issue_var_names =  ['page_url', 'img_url', 'img_current_alt_text', 'img_suggested_alt_text']
+    issue = {k:'' for k in issue_var_names}
+    respond_with_json = request_wants_json(request)
+
     if request.method == 'POST':
-        page_url = request.form['page_url'].strip()
-        if not page_url:
+        issue = get_object_by_form_or_json(issue_var_names)
+                    
+        if not issue['page_url']:
             error = "Please enter the URL for the web page containing the image."
         else:
-            img_url = request.form['img_url'].strip()
-            if not img_url:
+            if not issue['img_url']:
                 error = "Please enter the URL for the image file."
+        
+        if error is None:
+            
+            if is_logged_in():        
+                reporter_user_id = session['user_id']
             else:
-                img_current_alt_text = request.form['img_current_alt_text'].strip()
-                img_ideal_alt_text = request.form['img_current_alt_text'].strip()
-                report = mongo.db.reports.find_one({'img_url': img_url, 'page_url': page_url})    
-                if report is None:
-                    report = {"img_url": img_url, "page_url": page_url, "created_on": datetime.datetime.utcnow(), "reporters": []}
-                report['img_current_alt_text'] = img_current_alt_text
-                report['img_ideal_alt_text'] = img_ideal_alt_text
-                if is_logged_in():        
-                    reporter = session['user_id']
-                else:
-                    reporter = None
-                report['reporters'].append(reporter)
-                report['updated_on'] = datetime.datetime.utcnow()
-                mongo.db.reports.update({'img_url': img_url, 'page_url': page_url}, report, True)
+                reporter_user_id = None
+                
+            issue = add_issue(reporter_user_id, issue)
+            
+            if respond_with_json:
+                return smart_jsonify(issue)
+            else:
                 flash('The image was successfully reported.')
                 return redirect(url_for('index'))
-                
-    return render_template('report.html', error=error, page_url=page_url, img_url=img_url, img_current_alt_text=img_current_alt_text, img_ideal_alt_text=img_ideal_alt_text)
-
-def get_hashed_password(password, salt="somesalt"):
-    return hashlib.sha512(password + salt).hexdigest()
-
-def is_logged_in():
-    return session is not None and 'user_id' in session and session['user_id'] is not None
-
-def get_current_user():
-    if is_logged_in():
-        return mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
+        else:
+            if respond_with_json:
+                return smart_jsonify(error=error)
+    
+    if respond_with_json:
+        issues = mongo.db.issues.find()
+        return smart_jsonify(issues)
     else:
-        return None
+        return make_response(render_template('report.html', error=error, issue=issue))
 
-def get_reports_by_user(user):
+def add_issue(reporter_user_id, issue):
+    if reporter_user_id is None:
+        reporter_user_id = 'Unknown'
+    n_issue = mongo.db.issues.find_one({'img_url': issue['img_url'], 'page_url': issue['page_url']})    
+    if n_issue is None:
+        n_issue = {"img_url": issue['img_url'], \
+                    "page_url": issue['page_url'], \
+                    "created_on": datetime.datetime.utcnow(), \
+                    "reporters": []}
+    n_issue['img_current_alt_text'] = issue['img_current_alt_text']
+    n_issue['img_suggested_alt_text'] = issue['img_suggested_alt_text']
+    
+    # add reporter_id frequencies
+    n_issue['reporters'] = {k:v for (k, v) in (Counter(n_issue['reporters']) + Counter({reporter_user_id:1})).iteritems()}
+    
+    n_issue['updated_on'] = datetime.datetime.utcnow()
+
+    #print n_issue
+    
+    mongo.db.issues.update({'img_url': issue['img_url'], 'page_url': issue['page_url']}, n_issue, True)
+    n_issue = mongo.db.issues.find_one({'img_url': n_issue['img_url'], 'page_url': n_issue['page_url']})    
+    return n_issue
+
+
+def get_issues_by_user(user):
     if user is None:
         return None
     else:
-        #return mongo.db.reports.find()
         # https://stackoverflow.com/questions/10242149/sorting-with-mongodb-and-python
-        return mongo.db.reports.find({'reporters': {'$all': [str(user['_id'])]}}).sort([("created_on", -1)])    
+        #return mongo.db.issues.find().sort([("created_on", -1)])    
+        return mongo.db.issues.find({'reporters': {'$exists': [str(user['_id'])]}}).sort([("created_on", -1)])    
         
 # @app.route('/img/<imgid>')
 # def img_profile(imgid):
@@ -126,6 +177,7 @@ def get_reports_by_user(user):
 #     return render_template('img.html',
 #         img=img)
 
+# extra global helper functions for templating engine
 app.jinja_env.globals['is_logged_in'] = is_logged_in
 
 # set the secret key.  keep this really secret:

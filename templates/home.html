@@ -11,22 +11,24 @@
   <h2>Dashboard</h2>
   <p>API Key: <strong>{{ session.user_id }}</strong></p>
   
-  {% if reports: %}
+  {% if issues: %}
   <h3>My Reported Images with Bad Alternative Text</h3>
-  <table>
+  <table class="my-issues">
     <thead>
       <tr>
-        <th>Date</th>
+        <th class="img-filename">Image</th>
+        <th>Last Complaint Date</th>
+        <th>Total Complaints</th>
         <th>Page</th>
-        <th>Image</th>
       <tr>
     </thead>
     <tbody>
-    {% for report in reports %}
+    {% for issue in issues %}
       <tr>
-        <td>{{ report.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
-        <td><a href="{{ report.page_url }}">Link</a></td>
-        <td><a href="{{ report.img_url }}">Link</a></td>  
+        <td><a href="{{ issue.img_url }}">{{ issue.img_filename }}</a></td>
+        <td>{{ issue.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
+        <td>{{ issue.complaint_count }}</td>
+        <td><a href="{{ issue.page_url }}">Link</a></td>
       </tr>
     {% endfor %}
     </tbody>

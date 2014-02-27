@@ -1,12 +1,31 @@
 body            { font-family: sans-serif; background: #eee; }
-a, h1, h2, h3   { color: red; }
-h1, h2, h3      { font-family: 'Georgia', serif; margin: 0; }
+a               { color: red; }
+h1, h2, h3      { color: black; font-family: 'Georgia', serif; margin: 0; }
 h2              { font-size: 1.2em; }
 h3              { margin-bottom: 10px}
 
-table           { width: 100%       }
-th              { text-align: left; }
-td              { text-align: left; }
+table           { width: 100%; table-layout: fixed }
+
+th, td  { 
+    width: 50px; 
+    padding: 1em; 
+    padding-right: 10px; 
+    word-wrap: break-word; 
+    text-align: center 
+}
+
+table.my-issues {
+    margin-top: 30px;
+}
+
+thead {
+    background-color: red;
+}
+
+thead th {
+    color:white;
+    margin-top: 20px;
+}
 
 
 .site-header { 
@@ -18,7 +37,7 @@ td              { text-align: left; }
 
 .site-title      { display:table-cell; vertical-align: middle;}
 .site-logo      { width: 3em; display:table-cell; vertical-align: middle; margin-right: 20px }
-.page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
+.page           { margin: 2em auto; width: 50em; border: 5px solid #ccc;
                   padding: 0.8em; background: white; }
 .entries        { list-style: none; margin: 0; padding: 0; }
 .entries li     { margin: 0.8em 1.2em; }
