@@ -46,7 +46,7 @@ thead th {
 .metanav        { text-align: right; font-size: 0.8em; padding: 0.3em;
                   margin-bottom: 1em; background: #fafafa; clear:both; border-top: 2px solid #eee; margin-top: 1em; }
 .flash          { background: #cee5F5; padding: 0.5em;
-                  border: 1px solid #aacbe2; }
+                  border: 1px solid #aacbe2; margin-bottom: 20px}
 .error          { background: #f0d6d6; padding: 0.5em; }
 
 a:link {text-decoration:none;}      /* unvisited link */
