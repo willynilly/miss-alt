@@ -152,7 +152,7 @@ def _post_issue(success_redirect_name='index', error_template='new_issue.html'):
     respond_with_json = request_wants_json(request)
     issue = get_object_by_form_or_json(Issue.var_names)
     if not issue['page_url']:
-        error = "Please enter the URL for the web page containing the image."
+        error = "Please enter the URL that contains the issue."
     else:
         if not issue['img_url']:
             error = "Please enter the URL for the image file."
@@ -167,7 +167,7 @@ def _post_issue(success_redirect_name='index', error_template='new_issue.html'):
         if respond_with_json:
             return smart_jsonify(issue)
         else:
-            flash('The image was successfully reported.')
+            flash('The issue was successfully reported.')
             return redirect(url_for(success_redirect_name))
     else:
         if respond_with_json:
