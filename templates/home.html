@@ -1,46 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
 
-{% if not is_logged_in() %}
 
   <h2>About</h2>
   <p>Miss-Alt will allow people with disabilities and their advocates to report missing, insufficient, or inaccurate alternative text for images anywhere on the web.  Universities, companies, nonprofits, and government agencies will be able to search Miss-Alt to discover problematic alternative text for their images, and prioritize improvements requested by their users who have disabilities.</p>
-
-{% else %}
-  
-  {% if issues: %}
-  <h3>My Image Issues</h3>
-  <table class="issues">
-    <thead>
-      <tr>
-        <th>Status</th>
-        <th class="img-filename">Image</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Created Date</th>
-        <th>Updated Date</th>
-        <th>Total Complaints</th>
-        <th>Page</th>
-      <tr>
-    </thead>
-    <tbody>
-    {% for issue in issues %}
-      <tr>
-        <td><a href="{{ issue.status }}">{{ issue.status }}</a></td>
-        <td><a href="{{ issue.img_url }}">{{ issue.img_filename }}</a></td>
-        <td>{{ issue.type }}</td>
-        <td>{{ issue.description }}</td>
-        <td>{{ issue.created_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
-        <td>{{ issue.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
-        <td>{{ issue.complaint_count }}</td>
-        <td><a href="{{ issue.page_url }}">Link</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-
-{% endif %}
 
 
 {% endblock %}

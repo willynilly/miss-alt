@@ -113,14 +113,14 @@ def clear_all():
     mongo.db.issues.drop()
     return redirect(url_for('index'))
 
-@app.route('/report', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/new-issue', methods=['GET', 'POST', 'OPTIONS'])
 @crossdomain(origin='*')
-def report():
+def new_issue():
     if request.method == 'POST':
-        return _post_issue(success_redirect_name='index', error_template='report.html')
+        return _post_issue(success_redirect_name='index', error_template='new_issue.html')
     else:
         issue = {k:'' for k in Issue.var_names}
-        return make_response(render_template('report.html', error=None, issue=issue))
+        return make_response(render_template('new_issue.html', error=None, issue=issue))
             
 @app.route('/issues', methods=['GET', 'POST', 'OPTIONS'])
 @crossdomain(origin='*')
@@ -147,7 +147,7 @@ def issue(issueid):
     else:
         return ''
 
-def _post_issue(success_redirect_name='index', error_template='report.html'):
+def _post_issue(success_redirect_name='index', error_template='new_issue.html'):
     error = None
     respond_with_json = request_wants_json(request)
     issue = get_object_by_form_or_json(Issue.var_names)
