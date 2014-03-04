@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% if is_logged_in() %}
+
+  <h2>Account</h2>
+  
+  <p>API Key: <strong>{{ session.user_id }}</strong></p>
+  <p>Your Email Address: <strong>{{ user['email'] }}</strong></p>
+  
+  
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('account') }}" method="post">
+
+      <p>
+      <label for="disability">Your Disabilities or Functional Difficulties (if any) (one disability or functional difficulty per line) (optional):</label>
+      <br/>
+      <textarea name="disability" rows="6" cols="50">{{ user['disability'] }}</textarea>
+      </p>
+      
+      <p>
+      <label for="organization">Your Organizations (colleges, companies, government agencies, etc.) (one organization per line) (optional):</label>
+      <br/>
+      <textarea name="organization" rows="6" cols="50">{{ user['organization'] }}</textarea>
+      </p>
+      
+      <p>
+        <input type="submit" value="Update Account" />
+      </p>
+  </form>
+  
+
+{% endif %}
+
+
+{% endblock %}

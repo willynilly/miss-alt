@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h3>Issues</h3>
+  
+{% if issues: %}
+<table class="issues">
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th class="img-filename">Image</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Created Date</th>
+      <th>Updated Date</th>
+      <th>Total Complaints</th>
+      <th>Page</th>
+    <tr>
+  </thead>
+  <tbody>
+  {% for issue in issues %}
+    <tr>
+      <td><a href="{{ issue.status }}">{{ issue.status }}</a></td>
+      <td><a href="{{ issue.img_url }}">{{ issue.img_filename }}</a></td>
+      <td>{{ issue.type }}</td>
+      <td>{{ issue.description }}</td>
+      <td>{{ issue.created_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
+      <td>{{ issue.updated_on.strftime("%m/%d/%Y %H:%M:%S") }}</td>
+      <td>{{ issue.complaint_count }}</td>
+      <td><a href="{{ issue.page_url }}">Link</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No issues were found.</p>
+{% endif %}
+
+
+
+{% endblock %}

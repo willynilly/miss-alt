@@ -7,13 +7,10 @@
   <p>Miss-Alt will allow people with disabilities and their advocates to report missing, insufficient, or inaccurate alternative text for images anywhere on the web.  Universities, companies, nonprofits, and government agencies will be able to search Miss-Alt to discover problematic alternative text for their images, and prioritize improvements requested by their users who have disabilities.</p>
 
 {% else %}
-
-  <h2>Dashboard</h2>
-  <p>API Key: <strong>{{ session.user_id }}</strong></p>
   
   {% if issues: %}
   <h3>My Image Issues</h3>
-  <table class="my-issues">
+  <table class="issues">
     <thead>
       <tr>
         <th>Status</th>
