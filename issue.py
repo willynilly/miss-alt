@@ -38,8 +38,6 @@ class Issue:
 
         n_issue['updated_on'] = datetime.datetime.utcnow()
 
-        #print n_issue
-
         Issue.mongo.db.issues.update({'img_url': issue['img_url'], 'page_url': issue['page_url']}, n_issue, True)
         n_issue = Issue.mongo.db.issues.find_one({'img_url': n_issue['img_url'], 'page_url': n_issue['page_url']})    
         return n_issue

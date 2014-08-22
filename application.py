@@ -2,35 +2,19 @@ from flask import Flask, flash, session, redirect, url_for, escape, request, ren
 from flask.ext.classy import FlaskView
 from flask.ext.pymongo import PyMongo, ObjectId
 from smartjson import smart_jsonify, request_wants_json
-from utility import get_full_filename_from_url
 from crossdomain import crossdomain
 from issue import Issue
-import hashlib, uuid
+from utilfilename import get_full_filename_from_url
+from utilpassword import get_hashed_password
+import uuid
 import datetime
 
+# create flask application
 app = Flask(__name__)
 mongo = PyMongo(app)
 Issue.mongo = mongo
 
-# class IssuesView:
-#     def index(self):
-#         pass
-#         
-#     def get(self, id):
-#         pass
-#         
-#     def post(self, id):
-#         pass
-#     
-#     def delete(self, id):
-#         pass
-#     
-# class UsersView:    
-#     pass
-
-def get_hashed_password(password, salt="somesalt"):
-    return hashlib.sha512(password + salt).hexdigest()
-
+# helper functions
 def is_logged_in():
     return session is not None and 'user_id' in session and session['user_id'] is not None
 
@@ -49,6 +33,7 @@ def get_object_by_form_or_json(var_names=[]):
         obj = dict(obj.items() + json.items())
     return obj
 
+# define routes
 @app.route('/')
 def index():
     issues = None
@@ -110,6 +95,7 @@ def logout():
 # make sure to hide this for production site
 @app.route('/clear', methods=['GET'])
 def clear_all():
+    mongo.db.users.drop()
     mongo.db.issues.drop()
     return redirect(url_for('index'))
 
@@ -205,5 +191,6 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 # set debugging status of the app
 app.debug = True
 
+# start application
 if __name__ == '__main__':
     app.run()
